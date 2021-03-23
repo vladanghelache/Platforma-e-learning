@@ -31,3 +31,6 @@ Proiect PAO
    * Take Quiz
    * Show Answers/Grades
  * Show all Courses from one Category
+
+### Diagramă
+![Diagram](https://github.com/vladanghelache/Platforma-e-learning/blob/main/E-learning%20Platform-1.png)
