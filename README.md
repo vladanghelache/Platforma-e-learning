@@ -1,4 +1,5 @@
-# Proiect PAO
+# Platformă e-learning 
+Proiect PAO
 ## Etapa 1
 **Obiecte:**
 * User
