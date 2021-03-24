@@ -1,8 +1,8 @@
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+package models;
 
-public class Student extends User{
+import java.util.*;
+
+public class Student extends User {
     private int age;
     private Set<Course> coursesAttended;
     private Map<String,Integer> grades;
@@ -20,8 +20,8 @@ public class Student extends User{
     }
 
     {
-        this.coursesAttended = new Collections.emptySet<Course>();
-        this.grades = new  Collections.emptyMap<Course>();
+        this.coursesAttended = new HashSet<Course>();
+        this.grades = new HashMap<String,Integer>();
     }
 
     public int getAge() {
@@ -46,5 +46,17 @@ public class Student extends User{
 
     public void addCourse(Course course){
         this.coursesAttended.add(course);
+    }
+
+    @Override
+    public String toString(){
+        return "models.Student{"+
+                "Id='"+getId()+
+                "', username='"+getUsername() +
+                "', firstName='"+getFirstName()+
+                "', lastName='"+getLastName()+
+                "', password='"+getPassword()+
+                "', email='"+getEmail()+
+                "', age='"+age+"'}";
     }
 }

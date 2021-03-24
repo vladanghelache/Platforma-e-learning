@@ -2,35 +2,35 @@
 Proiect PAO
 ## Etapa 1
 **Obiecte:**
-* User
-   * Teacher
-   * Student
-* Course
-* Quiz
-   * Auto-scored (only MCQ)
+* models.User
+   * models.Teacher
+   * models.Student
+* models.Course
+* models.Quiz
+   * Auto-scored (only models.MCQ)
    * Normal (scored by the teacher, can have any type of question)
-* Question
-   * Multiple-Choise Question (MCQ)
-   * Open-ended Question (OEQ)
-   * Match-the-pair (MP)
-* Answer  
+* models.Question
+   * Multiple-Choise models.Question (models.MCQ)
+   * Open-ended models.Question (models.OEQ)
+   * Match-the-pair (models.MP)
+* models.Answer  
   
 **Acțiuni:**
-* User:
+* models.User:
    * Register
    * Log in
    * Log out
-* Teacher:
-   * Create Course
-   * Create Quiz
-   * Score Answer
-   * Delete Question from a Quiz
-   * Add Question to a Quiz
- * Student:
-   * Join Course
-   * Take Quiz
+* models.Teacher:
+   * Create models.Course
+   * Create models.Quiz
+   * Score models.Answer
+   * Delete models.Question from a models.Quiz
+   * Add models.Question to a models.Quiz
+ * models.Student:
+   * Join models.Course
+   * Take models.Quiz
    * Show Answers/Grades
- * Show all Courses from one Category
+ * Show all Courses from one models.Category
 
 ### Diagramă
 ![Diagram](https://github.com/vladanghelache/Platforma-e-learning/blob/main/E-learning%20Platform-1.png)

@@ -1,3 +1,5 @@
+package models;
+
 public abstract class User {
     private static int count = 0;
     private int Id;
@@ -9,7 +11,7 @@ public abstract class User {
 
     public User (String username, String firstName, String lastName, String password, String email) {
 
-        this.Id = count;
+
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -25,6 +27,7 @@ public abstract class User {
 
     {
         count ++;
+        this.Id = count;
     }
 
     public int getId() {

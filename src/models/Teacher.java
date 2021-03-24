@@ -1,4 +1,6 @@
-import java.util.Collections;
+package models;
+
+import java.util.HashSet;
 import java.util.Set;
 
 public class Teacher extends User {
@@ -18,7 +20,7 @@ public class Teacher extends User {
     }
 
     {
-        this.Courses = new Collections.emptySet<Course>();
+        this.Courses = new HashSet<Course>();
     }
 
     public Set<Course> getCourses() {
@@ -37,4 +39,15 @@ public class Teacher extends User {
         this.Courses.add(course);
     }
 
+    @Override
+    public String toString(){
+        return "models.Student{"+
+                "Id='"+getId()+
+                "', username='"+getUsername() +
+                "', firstName='"+getFirstName()+
+                "', lastName='"+getLastName()+
+                "', password='"+getPassword()+
+                "', email='"+getEmail()+
+                "', qualification='"+qualification+"'}";
+    }
 }
