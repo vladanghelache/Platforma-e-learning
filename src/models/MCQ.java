@@ -50,12 +50,12 @@ public class MCQ extends Question {
     @Override
     public String toString() {
 
-        String str = "";
+        StringBuilder str = new StringBuilder();
 
         for (Map.Entry<Character, String> choice:
              choices.entrySet()) {
 
-            str += choice.getKey() + ") " + choice.getValue() + "\n";
+            str.append(choice.getKey() + ") " + choice.getValue() + "\n");
 
         }
 

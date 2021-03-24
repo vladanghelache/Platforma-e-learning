@@ -38,21 +38,21 @@ public class MP extends Question {
     @Override
     public String toString() {
 
-        String str = "A: \n";
+        StringBuilder str = new StringBuilder("A: \n");
 
         for (Map.Entry<Character, String> elem:
                 columnA.entrySet()) {
 
-            str += elem.getKey() + ") " + elem.getValue() + "\n";
+            str.append(elem.getKey() + ") " + elem.getValue() + "\n");
 
         }
 
-        str += "B: \n";
+        str.append("B: \n");
 
         for (Map.Entry<Integer, String> elem:
                 columnB.entrySet()) {
 
-            str += elem.getKey() + ") " + elem.getValue() + "\n";
+            str.append(elem.getKey() + ") " + elem.getValue() + "\n");
 
         }
         return getQuestion() + "  Punctaj: " + getPoints() + "\n" + str;

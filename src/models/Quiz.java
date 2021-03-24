@@ -68,7 +68,8 @@ public abstract class Quiz {
 
     @Override
     public String toString() {
-        return "models.Quiz{" +
+        return "Quiz{" +
+                "Id=" + Id +
                 ", quizName='" + quizName + '\'' +
                 ", nrQuestions=" + nrQuestions +
                 ", totalPoints=" + totalPoints +

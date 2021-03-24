@@ -50,7 +50,7 @@ public class Student extends User {
 
     @Override
     public String toString(){
-        return "models.Student{"+
+        return "Student{"+
                 "Id='"+getId()+
                 "', username='"+getUsername() +
                 "', firstName='"+getFirstName()+
