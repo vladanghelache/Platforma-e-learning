@@ -11,9 +11,9 @@ public class Student extends User {
         super();
     }
 
-    public Student(String username, String firstName, String lastName, String password, String email, int age){
+    public Student(String firstName, String lastName, String password, String email, int age){
 
-        super(username,firstName,lastName,password,email);
+        super(firstName,lastName,password,email);
 
         this.age = age;
 
@@ -52,7 +52,6 @@ public class Student extends User {
     public String toString(){
         return "Student{"+
                 "Id='"+getId()+
-                "', username='"+getUsername() +
                 "', firstName='"+getFirstName()+
                 "', lastName='"+getLastName()+
                 "', password='"+getPassword()+

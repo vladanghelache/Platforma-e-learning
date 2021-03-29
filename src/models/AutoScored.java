@@ -2,6 +2,7 @@ package models;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class AutoScored extends Quiz {
@@ -13,7 +14,7 @@ public class AutoScored extends Quiz {
 
     public AutoScored(String quizName, int nrQuestions, @NotNull Set<MCQ> MCQs){
         super(quizName, nrQuestions);
-        this.MCQs = MCQs;
+        this.MCQs = new HashSet<>(MCQs);
         this.setNrQuestions(MCQs.size());
         int totalPoints = 0;
         for (MCQ question:
@@ -27,10 +28,6 @@ public class AutoScored extends Quiz {
 
     public Set<MCQ> getMCQs() {
         return MCQs;
-    }
-
-    public void setMCQs(Set<MCQ> MCQs) {
-        this.MCQs = MCQs;
     }
 
 

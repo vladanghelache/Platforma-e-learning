@@ -12,8 +12,8 @@ public class Teacher extends User {
 
     }
 
-    public Teacher (String username, String firstName, String lastName, String password, String email, String qualification){
-        super(username,firstName,lastName,password,email);
+    public Teacher ( String firstName, String lastName, String password, String email, String qualification){
+        super(firstName,lastName,password,email);
 
         this.qualification = qualification;
 
@@ -28,7 +28,7 @@ public class Teacher extends User {
     }
 
     public String getQualification() {
-        return qualification;
+        return qualification.toString();
     }
 
     public void setQualification(String qualification) {
@@ -43,7 +43,6 @@ public class Teacher extends User {
     public String toString(){
         return "Teacher{"+
                 "Id='"+getId()+
-                "', username='"+getUsername() +
                 "', firstName='"+getFirstName()+
                 "', lastName='"+getLastName()+
                 "', password='"+getPassword()+

@@ -29,11 +29,6 @@ public class NormalQuiz extends Quiz {
         return questions;
     }
 
-    public void setQuestions(Set<Question> questions) {
-        this.questions = questions;
-    }
-
-
     public void addQuestion(Question question) {
         this.questions.add(question);
     }

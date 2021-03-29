@@ -3,16 +3,14 @@ package models;
 public abstract class User {
     private static int count = 0;
     private int Id;
-    private String username;
     private String firstName;
     private String lastName;
     private String password;
     private String email;
 
-    public User (String username, String firstName, String lastName, String password, String email) {
+    public User (String firstName, String lastName, String password, String email) {
 
 
-        this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
         this.password = password;
@@ -34,24 +32,20 @@ public abstract class User {
         return Id;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
     public String getEmail() {
-        return email;
+        return email.toString();
     }
 
     public String getFirstName() {
-        return firstName;
+        return firstName.toString();
     }
 
     public String getLastName() {
-        return lastName;
+        return lastName.toString();
     }
 
     public String getPassword() {
-        return password;
+        return password.toString();
     }
 
     public void setEmail(String email) {
@@ -60,10 +54,6 @@ public abstract class User {
 
     public void setId(int id) {
         Id = id;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public void setFirstName(String firstName) {
