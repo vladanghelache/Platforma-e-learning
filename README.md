@@ -32,13 +32,13 @@ Proiect PAO
 * Teacher:
    * Create Course
    * Create Quiz
-   * Score Answer (TO_DO)
+   * Score Answer 
    * Delete one or more Questions from a Quiz
    * Add a Question to a Quiz
  * Student:
    * Join Course
-   * Take Quiz (TO_DO)
-   * Show Answers/Grades (TO_DO)
+   * Take Quiz 
+   * Show Grades 
  * Show all Courses from one Category
  * Show all Courses from one User
 
