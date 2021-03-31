@@ -34,7 +34,7 @@ public class UserValidator {
             valid[3] = true;
         }
 
-        return new ValidationInfo(valid,(errorMessage.isEmpty() ? "Registration completed" : errorMessage.toString()));
+        return new ValidationInfo(valid,(errorMessage.isEmpty() ? "Registration completed\n" : errorMessage.toString()));
     }
 
     private boolean validateEmail(String email){

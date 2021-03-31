@@ -8,13 +8,13 @@ public class MCQ extends Question {
 
     private  int nrChoices;
     private Map<Character,String> choices;
-    private int corectAnswer;
+    private Character corectAnswer;
 
     public MCQ(){
         super();
     }
 
-    public MCQ(String question, int points, int nrChoices, Map<Character,String> choices, int corectAnswer){
+    public MCQ(String question, int points, int nrChoices, Map<Character,String> choices, Character corectAnswer){
 
         super(question,points);
         this.nrChoices = nrChoices;
@@ -39,7 +39,7 @@ public class MCQ extends Question {
         this.nrChoices = nrChoices;
     }
 
-    public void setCorectAnswer(int corectAnswer) {
+    public void setCorectAnswer(Character corectAnswer) {
         this.corectAnswer = corectAnswer;
     }
 

@@ -12,14 +12,16 @@ public abstract class Quiz {
     private int nrQuestions;
     private Set<Answer> answers;
     private int totalPoints;
+    private Teacher teacher;
 
     public Quiz(){
 
     }
 
-    public Quiz(String quizName, int nrQuestions){
+    public Quiz(String quizName, int nrQuestions, Teacher teacher){
         this.quizName = quizName;
         this.nrQuestions = nrQuestions;
+        this.teacher = teacher;
     }
 
     {
@@ -39,6 +41,14 @@ public abstract class Quiz {
 
     public int getTotalPoints() {
         return totalPoints;
+    }
+
+    public Teacher getTeacher() {
+        return teacher;
+    }
+
+    public void setTeacher(Teacher teacher) {
+        this.teacher = teacher;
     }
 
     public Set<Answer> getAnswers() {
@@ -70,7 +80,8 @@ public abstract class Quiz {
     public String toString() {
         return "Quiz{" +
                 "Id=" + Id +
-                ", quizName='" + quizName + '\'' +
+                "teacher='" + teacher.getFirstName() + " " + teacher.getLastName() +
+                "', quizName='" + quizName + '\'' +
                 ", nrQuestions=" + nrQuestions +
                 ", totalPoints=" + totalPoints +
                 '}';

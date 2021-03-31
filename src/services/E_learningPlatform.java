@@ -2,10 +2,10 @@ package services;
 
 import models.*;
 
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Scanner;
-import java.util.Set;
+import java.sql.SQLOutput;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class E_learningPlatform {
 
@@ -18,11 +18,12 @@ public class E_learningPlatform {
         Courses = new HashSet<>();
         Users = new HashSet<>();
     }
-    private E_learningPlatform() {
+    private E_learningPlatform() throws ParseException {
         System.out.print("Bine ati venit!\n");
+        addExamples();
     }
 
-    public static E_learningPlatform getInstance(){
+    public static E_learningPlatform getInstance() throws ParseException {
         if(instance == null){
             instance = new E_learningPlatform();
         }
@@ -82,7 +83,7 @@ public class E_learningPlatform {
 
                 ValidationInfo info = new UserValidator().validateWithErrorMessage(newUser);
 
-                if (info.getErrorMessage().equals("Registration completed")) {
+                if (info.getErrorMessage().equals("Registration completed\n")) {
                     isValid = true;
 
                     if (newUser instanceof Student) {
@@ -154,10 +155,337 @@ public class E_learningPlatform {
         }
     }
 
+    public void createCourse() throws ParseException {
+        if (currentUser instanceof Teacher){
+            Scanner scanner =  new Scanner(System.in);
+            Course newCourse = new Course();
+            boolean[] valid = {false,false,false};
+            while (true){
+                if (!valid[0]){
+                    System.out.print("Introduceti numele cursului: ");
+                    newCourse.setCourseName(scanner.nextLine());
+                }
+                if (!valid[1]){
+                    DateValidator dateValidator = new DateValidator();
+                    String dateString = "";
+                    while(!dateValidator.validateDate(dateString)){
+                        System.out.print("Introuceti data de inceput (\"yyyy-MM-dd\"):  ");
+                        dateString = scanner.next();
+                    }
+
+
+                    newCourse.setStartDate(new SimpleDateFormat("yyyy-MM-dd").parse(dateString));
+                }
+                if(!valid[2]){
+                    DateValidator dateValidator = new DateValidator();
+                    String dateString = "";
+                    while(!dateValidator.validateDate(dateString)){
+                        System.out.print("Introuceti data de sfarsit (\"yyyy-MM-dd\"): ");
+                        dateString = scanner.next();
+                    }
+
+
+                    newCourse.setEndDate(new SimpleDateFormat("yyyy-MM-dd").parse(dateString));
+                }
+
+                ValidationInfo info = new CourseValidator().validateWithErrorMessage(newCourse);
+                if (info.getErrorMessage().equals("Cursul a fost adaugat cu succes\n")){
+                    List categories = Arrays.asList(Category.values());
+                    while(true){
+                        System.out.println("Selectati categoaria:");
+                        for (int i = 0; i < categories.size() ; i++ ){
+                            System.out.println(i +" - "+ categories.get(i).toString());
+                        }
+
+                        int index = scanner.nextInt();
+                        if(index < categories.size() && index >= 0){
+                            newCourse.setCategory((Category) categories.get(index));
+                            break;
+                        }
+                    }
+                    newCourse.setTeacher((Teacher) currentUser);
+                    ((Teacher) currentUser).addCourse(newCourse);
+                    Courses.add(newCourse);
+                    break;
+                }
+                else{
+                    valid = info.getValid();
+                }
+                System.out.println(info.getErrorMessage());
+            }
+
+        }
+    }
+
+    public void showCoursesByCategory(){
+        if (currentUser != null){
+            List categories = Arrays.asList(Category.values());
+            Scanner scanner = new Scanner(System.in);
+
+            while (true) {
+                System.out.println("Selectati categoaria:");
+                for (int i = 0; i < categories.size(); i++) {
+                    System.out.println(i + " - " + categories.get(i).toString());
+                }
+                int index = scanner.nextInt();
+                if (index < categories.size() && index >= 0) {
+                    for (Course course:
+                         Courses) {
+                        if (course.getCategory() == categories.get(index)){
+                            System.out.println(course);
+                        }
+                    }
+                    break;
+                }
+            }
+
+        }
+
+    }
+
+    public String joinCourse(int courseId){
+        if (currentUser instanceof Student) {
+            boolean found = false;
+            for (Course course :
+                    Courses) {
+                if (course.getId() == courseId) {
+                    found = true;
+                    course.addStudent((Student) currentUser);
+                    ((Student) currentUser).addCourse(course);
+                    break;
+                }
+            }
+            if (found){
+                return "Inscrierea s-a efectuat cu succes!";
+            }
+            else {
+                return  "Inscrierea a esuat! Nu a fost gasit niciun curs cu id-ul " + courseId;
+            }
+        }
+        return "Numai studentii se pot inscrie la un curs!";
+    }
+
+    public void showCourses(User user){
+        if(user instanceof Teacher){
+            Set<Course> courses =  ((Teacher) user).getCourses();
+            for (Course course :
+                    courses) {
+                System.out.println(course);
+            }
+        }
+        else{
+            Set<Course> courses =  ((Student) user).getCourses();
+            for (Course course :
+                    courses) {
+                System.out.println(course);
+            }
+        }
+    }
+
+    public void addQuiz(Course course){
+        if (currentUser instanceof Teacher && currentUser == course.getTeacher()){
+            Scanner scanner = new Scanner(System.in);
+            System.out.print("Pentru a crea un quiz 'AutoScored' apasati tasta 'A'\nPentru a crea un quiz normal apasati tasta 'N': ");
+            String option = scanner.next();
+            while (!option.equalsIgnoreCase("a") && !option.equalsIgnoreCase("n")) {
+                System.out.println("Comanda necunoascuta! Incercati din nou: ");
+                option = scanner.next();
+            }
+            Quiz newQuiz = AorN(option);
+
+            scanner.nextLine();
+            System.out.print("Intrduceti un titlu pentru noul quiz: ");
+            newQuiz.setQuizName(scanner.nextLine());
+
+            System.out.print("Intrduceti numarul de intrebari pentru noul quiz: ");
+            int n = scanner.nextInt();
+            newQuiz.setNrQuestions(n);
+            if (newQuiz instanceof AutoScored) {
+                List<MCQ> questions = new ArrayList<>();
+                int totalPoints = 0;
+                for (int i = 0; i < n; i++) {
+                    MCQ question = (MCQ) makeQuestion("1");
+
+                    System.out.println("Introduceti raspunsul corect: ");
+                    question.setCorectAnswer(scanner.next().charAt(0));
+                    questions.add(question);
+                    totalPoints += question.getPoints();
+                }
+                ((AutoScored) newQuiz).setMCQs(questions);
+                 newQuiz.setTotalPoints(totalPoints);
+            }
+            else{
+                List<Question> questions = new ArrayList<>();
+                int totalPoints = 0;
+                for (int i = 0; i < n; i++) {
+                    System.out.print("Pentru a crea MCQ apasati tasta '1'\nPentru a crea OEQ apasati tasta '2'\n Pentru a crea MP apasati tasta '3':\n ");
+                    String op = scanner.next();
+                    while(!op.equals("1") && !op.equals("2") && !op.equals("3")){
+                        System.out.println("Comanda necunoscuta! Incercati din nou: ");
+                        op = scanner.next();
+                    }
+                    questions.add(makeQuestion(op));
+                    totalPoints += questions.get(i).getPoints();
+                }
+
+                ((NormalQuiz) newQuiz).setQuestions(questions);
+                newQuiz.setTotalPoints(totalPoints);
+
+            }
+            newQuiz.setTeacher((Teacher) currentUser);
+            course.addQuiz(newQuiz);
+        }
+    }
+
+    public void addQuestion(Quiz quiz){
+        if (currentUser instanceof Teacher && currentUser == quiz.getTeacher()) {
+            Scanner scanner = new Scanner(System.in);
+            if (quiz instanceof AutoScored) {
+                int totalPoints = quiz.getTotalPoints();
+                MCQ question = (MCQ) makeQuestion("1");
+
+                System.out.println("Introduceti raspunsul corect: ");
+                question.setCorectAnswer(scanner.next().charAt(0));
+                totalPoints += question.getPoints();
+
+                ((AutoScored) quiz).addQuestion(question);
+                quiz.setTotalPoints(totalPoints);
+            } else {
+
+                int totalPoints = quiz.getTotalPoints();
+
+                System.out.print("Pentru a crea MCQ apasati tasta '1'\nPentru a crea OEQ apasati tasta '2'\n Pentru a crea MP apasati tasta '3':\n ");
+                String op = scanner.next();
+                while (!op.equals("1") && !op.equals("2") && !op.equals("3")) {
+                    System.out.println("Comanda necunoscuta! Incercati din nou: ");
+                    op = scanner.next();
+                }
+                Question question = makeQuestion(op);
+                totalPoints += question.getPoints();
+
+
+                ((NormalQuiz) quiz).addQuestion(question);
+                quiz.setTotalPoints(totalPoints);
+
+            }
+        }
+    }
+
+    public void removeQuestions(Quiz quiz){
+        if(currentUser instanceof Teacher && currentUser == quiz.getTeacher()){
+            Scanner scanner = new Scanner(System.in);
+            if (quiz instanceof AutoScored) {
+                List<MCQ> questions = new ArrayList<>(((AutoScored) quiz).getMCQs());
+                for (MCQ question :
+                        questions) {
+                    System.out.println(question);
+
+                    System.out.print("Doriti sa stergeti aceasta intrebare? ('D' = Da/ 'N' = Nu): ");
+                    String option = scanner.next();
+                    while(!option.equalsIgnoreCase("d") && !option.equalsIgnoreCase("n")){
+                        System.out.print("Comanda necunoscuta! Incercati din nou: ");
+                        option = scanner.next();
+                    }
+                    if (option.equalsIgnoreCase("d")){
+                        ((AutoScored) quiz).removeQuestion(question);
+                    }
+
+                }
+            }
+            else{
+                List<Question> questions = new ArrayList<Question>(((NormalQuiz) quiz).getQuestions());
+                for (Question question :
+                        questions) {
+                    System.out.println(question);
+
+                    System.out.print("Doriti sa stergeti aceasta intrebare? ('D' = Da/ 'N' = Nu): ");
+                    String option = scanner.next();
+                    while(!option.equalsIgnoreCase("d") && !option.equalsIgnoreCase("n")){
+                        System.out.print("Comanda necunoscuta! Incercati din nou: ");
+                        option = scanner.next();
+                    }
+                    if (option.equalsIgnoreCase("d")){
+                        ((NormalQuiz) quiz).removeQuestion(question);
+                    }
+
+                }
+            }
+        }
+    }
+
+
     public User getCurrentUser() {
         return currentUser;
     }
 
+    private Question makeQuestion(String option){
+        Question question = questionType(option);
+        Scanner scanner = new Scanner(System.in);
+        if (option != "3") {
+            System.out.println("Introduceti cerinta intrebarii: ");
+            question.setQuestion(scanner.nextLine());
+        }
+
+        System.out.println("Introduceti punctajul intrebarii: ");
+        question.setPoints(scanner.nextInt());
+
+        switch (option){
+            case "1":
+                System.out.println("Introduceti numarul de raspunsuri: ");
+                int nr = scanner.nextInt();
+                ((MCQ) question).setNrChoices(nr);
+                scanner.nextLine();
+                Map<Character, String> choices = new HashMap<>();
+                for (int j = 0; j < nr; j++) {
+                    System.out.println("Introduceti raspunsul: ");
+                    String r =  scanner.nextLine();
+                    Character c = (char) ('a' + j);
+                    choices.put(c ,r);
+                }
+
+                ((MCQ) question).setChoices(choices);
+                break;
+            case "2":
+                scanner.nextLine();
+                System.out.println("Introduceti observatii legate de aceasta intrebare: ");
+                ((OEQ) question).setTips(scanner.nextLine());
+                break;
+            case "3":
+                System.out.println("Introduceti nr de elemente din coloana A: ");
+                int nA = scanner.nextInt();
+
+                Map<Character, String> colA = new HashMap<>();
+                scanner.nextLine();
+                for (int i = 0; i < nA; i++) {
+                    System.out.println("Introduceti urmatorul element in coloana A: ");
+                    String v = scanner.nextLine();
+                    Character k = (char) ('a' + i);
+
+                    colA.put(k,v);
+                }
+
+                ((MP) question).setColumnA(colA);
+
+                System.out.println("Introduceti nr de elemente din coloana B: ");
+                int nB = scanner.nextInt();
+
+                Map<Integer, String> colB = new HashMap<>();
+                scanner.nextLine();
+                for (int i = 0; i < nB; i++) {
+                    System.out.println("Introduceti urmatorul element in coloana B: ");
+                    String v = scanner.nextLine();
+                    Integer k = i;
+
+                    colB.put(k,v);
+                }
+
+                ((MP) question).setColumnB(colB);
+                break;
+        }
+
+        return question;
+
+    }
     private User TorS(String option){
         if(option.toLowerCase().equals("s")){
             return new Student();
@@ -165,6 +493,44 @@ public class E_learningPlatform {
         else {
             return new Teacher();
         }
+    }
+    private Quiz AorN(String option){
+        if(option.toLowerCase().equals("a")){
+            return new AutoScored();
+        }
+        else {
+            return new NormalQuiz();
+        }
+    }
+
+    private Question questionType(String option){
+        if(option.toLowerCase().equals("1")){
+            return new MCQ();
+        }
+        else {
+            if(option.toLowerCase().equals("2")){
+                return new OEQ();
+            }
+            else {
+                return new MP();
+            }
+        }
+    }
+
+    private void addExamples() throws ParseException {
+        User teacher = new Teacher("Igor", "Stravinski","parola123#","profesor@email.com","Doctorat in muzica");
+        User student = new Student("Alex", "Alexandrescu","parola123#","student@email.com",20);
+        User student2 = new Student("Paul", "Paulescu","parola123#","paul@email.com",22);
+        Courses.add(new Course("The Rite of Spring", (Teacher) teacher,Category.Music, new SimpleDateFormat("yyyy-MM-dd").parse("2021-04-04"),new SimpleDateFormat("yyyy-MM-dd").parse("2021-07-04")));
+        Courses.add(new Course("Neoclasicism", (Teacher) teacher,Category.Music, new SimpleDateFormat("yyyy-MM-dd").parse("2021-04-04"),new SimpleDateFormat("yyyy-MM-dd").parse("2021-07-04")));
+        Courses.add(new Course("Pyramid scheme", (Teacher) teacher,Category.Marketing, new SimpleDateFormat("yyyy-MM-dd").parse("2021-04-04"),new SimpleDateFormat("yyyy-MM-dd").parse("2021-07-04")));
+        for (Course course :
+                Courses) {
+            ((Teacher) teacher).addCourse(course);
+        }
+        Users.add(teacher);
+        Users.add(student);
+        Users.add(student2);
     }
 
 }

@@ -9,7 +9,7 @@ public class MP extends Question {
     private Map<Integer, String> columnB;
 
     public MP(){
-        super();
+        super(); super.setQuestion("Asociati elementele din coloana A cu cele din coloana B:");
     }
 
     public MP(int points, Map<Character, String> columnA, Map<Integer, String> columnB){
