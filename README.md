@@ -10,7 +10,7 @@ Proiect PAO
    * [Auto-scored (only MCQ)](/src/models/AutoScored.java)
    * [Normal (scored by the teacher, can have any type of question)](/src/models/NormalQuiz.java)
 * [Question](/src/models/Question.java)
-   * [Multiple-Choise Question (MCQ)](/src/models/MCQ.java)
+   * [Multiple-Choice Question (MCQ)](/src/models/MCQ.java)
    * [Open-ended Question (OEQ)](/src/models/OEQ.java)
    * [Match-the-pair (MP)](/src/models/MP.java)
 * [Answer](/src/models/Answer.java) 
