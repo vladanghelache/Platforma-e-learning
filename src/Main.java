@@ -1,7 +1,5 @@
 
-import models.Course;
-import models.Quiz;
-import models.Teacher;
+import models.*;
 import services.*;
 
 import java.text.ParseException;
@@ -49,6 +47,7 @@ public class Main {
                     System.out.println("Pentru a crea un quiz nou apasati tasta '6'");
                     System.out.println("Pentru a adauga o intrebare la un quiz apasati tasta '7'");
                     System.out.println("Pentru a sterge una sau mai multe intrebari dintr-un quiz apasati tasta '8'");
+                    System.out.println("Pentru a nota un raspuns apasati tasta '9'");
 
                     String option = scanner.next();
                     switch (option) {
@@ -124,7 +123,7 @@ public class Main {
                                     break ;
                                 }
                             }
-                            System.out.println("\nAlegeti quizul la care doriti sa adaugati o intrebare noua: \n");
+                            System.out.println("\nAlegeti quizul: \n");
                             for (Quiz quiz :
                                     course2.getQuizzes()) {
                                 System.out.println("Id: " + quiz.getId() + " ---- Quiz: " + quiz.getQuizName());
@@ -141,12 +140,64 @@ public class Main {
                             }
 
                             break ;
+                        case "9":
+                            System.out.println("\nAlegeti cursul in cadrul caruia se gaseste quiz-ul: \n");
+                            sesiune.showCourses(sesiune.getCurrentUser());
+                            System.out.print("\nIntroduceti id-ul cursului: ");
+                            int ID2 = scanner.nextInt();
+                            Course course3 = null;
+                            for (Course course:
+                                    ((Teacher) sesiune.getCurrentUser()).getCourses()) {
+                                if (course.getId() == ID2){
+                                    course3 = course;
+                                    break ;
+                                }
+                            }
+                            System.out.println("\nAlegeti quizul: \n");
+                            for (Quiz quiz :
+                                    course3.getQuizzes()) {
+                                System.out.println("Id: " + quiz.getId() + " ---- Quiz: " + quiz.getQuizName());
+
+                            }
+                            System.out.print("\nIntroduceti id-ul quiz-ului: ");
+                            int IDQuiz2 = scanner.nextInt();
+
+                            for (Quiz quiz :
+                                    course3.getQuizzes()) {
+                                if (quiz.getId() == IDQuiz2){
+                                    System.out.println("Raspunsuri date: ");
+                                    for (Answer answer:
+                                         quiz.getAnswers()) {
+                                        System.out.println(answer);
+                                    }
+
+                                    System.out.print("Introduceti id-ul raspunsului pe care doriti sa il notati: ");
+                                    int answerId = scanner.nextInt();
+                                    for (Answer answer:
+                                            quiz.getAnswers()) {
+                                        if (answer.getId()==answerId){
+                                            if(quiz instanceof NormalQuiz) {
+                                                sesiune.scoreAnswer((NormalQuiz) quiz, answer, course3.getCourseName());
+                                            }
+                                            else{
+                                                System.out.println("Raspunsul a fost deja notat!");
+                                            }
+                                            break ;
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+
+                            break ;
                         default:
                             System.out.println("Comanda necunoscuta");
                     }
                 }
                 else{
                     System.out.println("Pentru a va inscrie la un anumit curs apasati tasta '5'");
+                    System.out.println("Pentru a incepe un test apasati tasta '6'");
+                    System.out.println("Pentru a va vizualiza notele apasati tasta '7'");
 
                     String option = scanner.next();
                     switch (option) {
@@ -166,6 +217,48 @@ public class Main {
                             sesiune.showCoursesByCategory();
                             System.out.print("\nIntroduceti id-ul cursului: ");
                             System.out.println(sesiune.joinCourse(scanner.nextInt()));
+                            break ;
+                        case "6":
+                            System.out.println("\nAlegeti cursul in cadrul caruia se gaseste quiz-ul: \n");
+                            if(!((Student) sesiune.getCurrentUser()).getCourses().isEmpty()) {
+                                sesiune.showCourses(sesiune.getCurrentUser());
+                                System.out.print("\nIntroduceti id-ul cursului: ");
+                                int ID = scanner.nextInt();
+                                Course course2 = null;
+                                for (Course course :
+                                        ((Student) sesiune.getCurrentUser()).getCourses()) {
+                                    if (course.getId() == ID) {
+                                        course2 = course;
+                                        break;
+                                    }
+                                }
+                                if(!course2.getQuizzes().isEmpty()) {
+                                    System.out.println("\nAlegeti quizul: \n");
+                                    for (Quiz quiz :
+                                            course2.getQuizzes()) {
+                                        System.out.println("Id: " + quiz.getId() + " ---- Quiz: " + quiz.getQuizName());
+
+                                    }
+                                    System.out.print("\nIntroduceti id-ul quiz-ului: ");
+                                    int IDQuiz = scanner.nextInt();
+                                    for (Quiz quiz :
+                                            course2.getQuizzes()) {
+                                        if (quiz.getId() == IDQuiz) {
+                                            sesiune.takeQuiz(quiz, course2.getCourseName());
+                                            break;
+                                        }
+                                    }
+                                }
+                                else{
+                                    System.out.println("Cursul selectat nu are niciun quiz");
+                                }
+                            }
+                            else{
+                                System.out.println("Nu sunteti inscris la niciun curs!");
+                            }
+                            break;
+                        case "7":
+                            sesiune.showGrades();
                             break ;
                         default:
                             System.out.println("Comanda necunoscuta");

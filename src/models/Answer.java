@@ -33,4 +33,12 @@ public final class Answer {
     public List<String> getAnswer() {
         return answer;
     }
+
+    @Override
+    public String toString() {
+        return "Answer{" +
+                "Id=" + Id +
+                "', Student= " +student.getFirstName()+" "+student.getLastName()+
+                '}';
+    }
 }

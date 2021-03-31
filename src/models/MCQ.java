@@ -23,7 +23,7 @@ public class MCQ extends Question {
 
     }
 
-    public int getCorectAnswer() {
+    public Character getCorectAnswer() {
         return corectAnswer;
     }
 
