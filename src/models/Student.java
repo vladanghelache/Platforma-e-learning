@@ -1,8 +1,10 @@
 package models;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 
-public class Student extends User {
+public class Student extends User implements Comparable<Student> {
     private int age;
     private Set<Course> coursesAttended;
     private Map<String,Integer> grades;
@@ -57,5 +59,10 @@ public class Student extends User {
                 "', password='"+getPassword()+
                 "', email='"+getEmail()+
                 "', age='"+age+"'}";
+    }
+
+    @Override
+    public int compareTo(@NotNull Student o) {
+        return this.getLastName().compareTo(o.getLastName());
     }
 }

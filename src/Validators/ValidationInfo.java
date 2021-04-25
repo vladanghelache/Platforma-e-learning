@@ -1,4 +1,4 @@
-package services;
+package Validators;
 
 public class ValidationInfo {
     private boolean valid[];

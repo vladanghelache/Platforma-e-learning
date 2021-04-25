@@ -1,9 +1,7 @@
 package models;
 
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class Course {
     private static int count = 0;
@@ -14,7 +12,7 @@ public class Course {
     private Date startDate;
     private Date endDate;
     private Set<Quiz> quizzes;
-    private Set<Student> students;
+    private SortedSet<Student> students;
 
     public Course(){
 
@@ -32,7 +30,7 @@ public class Course {
         count ++;
         Id = count;
         this.quizzes =  new HashSet<Quiz>();
-        this.students = new HashSet<Student>();
+        this.students = new TreeSet<Student>();
     }
 
     public int getId() {
@@ -63,8 +61,16 @@ public class Course {
         return quizzes;
     }
 
-    public Set<Student> getStudents() {
+    public SortedSet<Student> getStudents() {
         return students;
+    }
+
+    public void setId(int id) {
+        Id = id;
+    }
+
+    public static void setCount(Integer count) {
+        Course.count = count;
     }
 
     public void setCategory(Category category) {

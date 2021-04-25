@@ -28,6 +28,10 @@ public class AutoScored extends Quiz {
 
     }
 
+    {
+        this.MCQs = new ArrayList<>();
+    }
+
     public List<MCQ> getMCQs() {
         return MCQs;
     }
@@ -35,6 +39,7 @@ public class AutoScored extends Quiz {
     public void setMCQs(List<MCQ> MCQs) {
         this.MCQs = new ArrayList<MCQ>(MCQs);
     }
+
 
     public void addQuestion(MCQ question) {
         this.MCQs.add(question);

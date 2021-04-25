@@ -1,5 +1,7 @@
 package models;
 
+import java.util.Optional;
+
 public abstract class User {
     private static int count = 0;
     private int Id;
@@ -54,6 +56,10 @@ public abstract class User {
 
     public void setId(int id) {
         Id = id;
+    }
+
+    public static void setCount(Integer count) {
+        User.count = count;
     }
 
     public void setFirstName(String firstName) {

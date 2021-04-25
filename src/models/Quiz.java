@@ -3,6 +3,7 @@ package models;
 
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 public abstract class Quiz {
@@ -59,8 +60,16 @@ public abstract class Quiz {
         return quizName;
     }
 
+    public void setId(int id) {
+        Id = id;
+    }
+
     public void setTotalPoints(int totalPoints) {
         this.totalPoints = totalPoints;
+    }
+
+    public static void setCount(Integer count) {
+        Quiz.count = count;
     }
 
     public void setQuizName(String quizName) {

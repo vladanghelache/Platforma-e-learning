@@ -1,0 +1,4 @@
+Id,firstName,lastName,password,email,qualification
+1,Ion,Ionescu,parola123#,prof@email.com,Docatorat
+5,Prenume,Nume,parola123#,teacher@email.com,Calificari
+7,Alexandra,Alexandrescu,parola123#,altemail@email.com,Doctorat in economie

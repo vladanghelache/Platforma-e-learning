@@ -23,6 +23,7 @@ public class Teacher extends User {
         this.Courses = new HashSet<Course>();
     }
 
+
     public Set<Course> getCourses() {
         return Courses;
     }

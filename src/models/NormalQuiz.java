@@ -27,6 +27,10 @@ public class NormalQuiz extends Quiz {
 
     }
 
+    {
+        this.questions = new ArrayList<>();
+    }
+
     public List<Question> getQuestions() {
         return questions;
     }

@@ -1,8 +1,11 @@
 package services;
 
+import Validators.CourseValidator;
+import Validators.DateValidator;
+import Validators.UserValidator;
+import Validators.ValidationInfo;
 import models.*;
 
-import java.sql.SQLOutput;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -10,17 +13,35 @@ import java.util.*;
 public class E_learningPlatform {
 
     private static E_learningPlatform instance;
-    private static Set<Course> Courses;
-    private static Set<User> Users;
+    private static Map<Integer, Course> Courses;
+    private static Map<Integer, User> Users;
+    private static Map<Integer, Quiz> Quizzes;
+    private static Map<Integer, Answer> Answers;
+    private static Map<Integer, Question> Questions;
     private User currentUser;
 
     static {
-        Courses = new HashSet<>();
-        Users = new HashSet<>();
+        Courses = new HashMap<>();
+        Users = new HashMap<>();
+        Quizzes = new HashMap<>();
+        Answers = new HashMap<>();
+        Questions = new HashMap<>();
     }
     private E_learningPlatform() throws ParseException {
         System.out.print("Bine ati venit!\n");
-        addExamples();
+        ReadData.getInstance().readData(Users, Courses, Quizzes, Questions, Answers);
+        Comparator<Integer> comparator = new Comparator<Integer>() {
+            @Override
+            public int compare(Integer o1, Integer o2) {
+                return o1 - o2;
+            }
+        };
+
+        Course.setCount(Courses.keySet().stream().max(comparator).get());
+        User.setCount(Users.keySet().stream().max(comparator).get());
+        Answer.setCount(Answers.keySet().stream().max(comparator).get());
+        Quiz.setCount(Quizzes.keySet().stream().max(comparator).get());
+        Question.setCount(Questions.keySet().stream().max(comparator).get());
     }
 
     public static E_learningPlatform getInstance() throws ParseException {
@@ -29,6 +50,10 @@ public class E_learningPlatform {
         }
 
         return instance;
+    }
+
+    public void saveData(){
+        WriteData.getInstance().writeData(Users, Courses, Quizzes, Questions, Answers);
     }
 
     public void register(){
@@ -54,7 +79,7 @@ public class E_learningPlatform {
                         String email = scan.next();
                         unic = true;
                         for (User user :
-                                Users) {
+                                Users.values()) {
                             if (user.getEmail().equals(email)) {
                                 System.out.println("Adresa de email introdusa este deja asociata unui cont");
                                 unic = false;
@@ -90,11 +115,12 @@ public class E_learningPlatform {
                         System.out.print("Introduceti varsta dumneavoastra: ");
                         ((Student) newUser).setAge(scan.nextInt());
                     } else {
+                        scan.nextLine();
                         System.out.print("Introduceti calificarile dumneavostra: ");
-                        ((Teacher) newUser).setQualification(scan.next());
+                        ((Teacher) newUser).setQualification(scan.nextLine());
                     }
 
-                    Users.add(newUser);
+                    Users.put(newUser.getId(),newUser);
                     this.currentUser = newUser;
                 } else {
                     valid = info.getValid();
@@ -115,7 +141,7 @@ public class E_learningPlatform {
             System.out.print("Introduceti email: ");
             String email = scanner.next();
             for (User u :
-                    Users) {
+                    Users.values()) {
             if(email.equals(u.getEmail())){
                    user = u;
                    foundUser = true;
@@ -205,7 +231,7 @@ public class E_learningPlatform {
                     }
                     newCourse.setTeacher((Teacher) currentUser);
                     ((Teacher) currentUser).addCourse(newCourse);
-                    Courses.add(newCourse);
+                    Courses.put(newCourse.getId(), newCourse);
                     break;
                 }
                 else{
@@ -230,9 +256,11 @@ public class E_learningPlatform {
                 int index = scanner.nextInt();
                 if (index < categories.size() && index >= 0) {
                     for (Course course:
-                         Courses) {
+                         Courses.values()) {
                         if (course.getCategory() == categories.get(index)){
                             System.out.println(course);
+                            System.out.println("->Participanti:");
+                            showParticipants(course);
                         }
                     }
                     break;
@@ -243,24 +271,24 @@ public class E_learningPlatform {
 
     }
 
+    public void showParticipants(Course course){
+        for (Student student :
+                course.getStudents()) {
+            System.out.println("  - "+ student);
+        }
+    }
+
     public String joinCourse(int courseId){
         if (currentUser instanceof Student) {
-            boolean found = false;
-            for (Course course :
-                    Courses) {
-                if (course.getId() == courseId) {
-                    found = true;
-                    course.addStudent((Student) currentUser);
-                    ((Student) currentUser).addCourse(course);
-                    break;
-                }
-            }
-            if (found){
-                return "Inscrierea s-a efectuat cu succes!";
-            }
-            else {
-                return  "Inscrierea a esuat! Nu a fost gasit niciun curs cu id-ul " + courseId;
-            }
+           if (Courses.containsKey(courseId)) {
+
+               Courses.get(courseId).addStudent((Student) currentUser);
+               ((Student) currentUser).addCourse(Courses.get(courseId));
+               return "Inscrierea s-a efectuat cu succes!";
+           }
+           else {
+               return  "Inscrierea a esuat! Nu a fost gasit niciun curs cu id-ul " + courseId;
+           }
         }
         return "Numai studentii se pot inscrie la un curs!";
     }
@@ -307,8 +335,9 @@ public class E_learningPlatform {
                     MCQ question = (MCQ) makeQuestion("1");
 
                     System.out.println("Introduceti raspunsul corect: ");
-                    question.setCorectAnswer(scanner.next().charAt(0));
+                    question.setCorrectAnswer(scanner.next().charAt(0));
                     questions.add(question);
+                    Questions.put(question.getId(),question);
                     totalPoints += question.getPoints();
                 }
                 ((AutoScored) newQuiz).setMCQs(questions);
@@ -324,7 +353,9 @@ public class E_learningPlatform {
                         System.out.println("Comanda necunoscuta! Incercati din nou: ");
                         op = scanner.next();
                     }
-                    questions.add(makeQuestion(op));
+                    Question question = makeQuestion(op);
+                    questions.add(question);
+                    Questions.put(question.getId(),question);
                     totalPoints += questions.get(i).getPoints();
                 }
 
@@ -334,6 +365,7 @@ public class E_learningPlatform {
             }
             newQuiz.setTeacher((Teacher) currentUser);
             course.addQuiz(newQuiz);
+            Quizzes.put(newQuiz.getId(),newQuiz);
         }
     }
 
@@ -345,7 +377,7 @@ public class E_learningPlatform {
                 MCQ question = (MCQ) makeQuestion("1");
 
                 System.out.println("Introduceti raspunsul corect: ");
-                question.setCorectAnswer(scanner.next().charAt(0));
+                question.setCorrectAnswer(scanner.next().charAt(0));
                 totalPoints += question.getPoints();
 
                 ((AutoScored) quiz).addQuestion(question);
@@ -388,6 +420,7 @@ public class E_learningPlatform {
                     }
                     if (option.equalsIgnoreCase("d")){
                         ((AutoScored) quiz).removeQuestion(question);
+                        Questions.remove(question.getId());
                     }
 
                 }
@@ -406,6 +439,7 @@ public class E_learningPlatform {
                     }
                     if (option.equalsIgnoreCase("d")){
                         ((NormalQuiz) quiz).removeQuestion(question);
+                        Questions.remove(question.getId());
                     }
 
                 }
@@ -431,6 +465,7 @@ public class E_learningPlatform {
 
                 Answer a = new Answer((Student) currentUser, answer);
                 quiz.addAnswer(a);
+                Answers.put(a.getId(),a);
                 scoreAnswer((AutoScored) quiz,a,courseName);
 
             }
@@ -445,9 +480,11 @@ public class E_learningPlatform {
                     String a = scanner.nextLine();
                     answer.add(a);
 
-                }
 
-                quiz.addAnswer(new Answer((Student) currentUser, answer));
+                }
+                Answer a = new Answer((Student) currentUser, answer);
+                quiz.addAnswer(a);
+                Answers.put(a.getId(),a);
             }
         }
     }
@@ -457,7 +494,7 @@ public class E_learningPlatform {
         List<String> answers = answer.getAnswer();
         int grade = 0;
         for (int i = 0; i < questions.size(); i++) {
-            String corect = new String(String.valueOf(questions.get(i).getCorectAnswer()));
+            String corect = new String(String.valueOf(questions.get(i).getCorrectAnswer()));
             if(answers.get(i).equals(corect)){
                 grade += questions.get(i).getPoints();
             }
@@ -608,16 +645,15 @@ public class E_learningPlatform {
         User student = new Student("Alex", "Alexandrescu","parola123#","student@email.com",20);
         User student2 = new Student("Paul", "Paulescu","parola123#","paul@email.com",22);
         Course course1 = new Course("The Rite of Spring", (Teacher) teacher,Category.Music, new SimpleDateFormat("yyyy-MM-dd").parse("2021-04-04"),new SimpleDateFormat("yyyy-MM-dd").parse("2021-07-04"));
-        Courses.add(course1);
-        Courses.add(new Course("Neoclasicism", (Teacher) teacher,Category.Music, new SimpleDateFormat("yyyy-MM-dd").parse("2021-04-04"),new SimpleDateFormat("yyyy-MM-dd").parse("2021-07-04")));
-        Courses.add(new Course("Pyramid scheme", (Teacher) teacher,Category.Marketing, new SimpleDateFormat("yyyy-MM-dd").parse("2021-04-04"),new SimpleDateFormat("yyyy-MM-dd").parse("2021-07-04")));
+        Courses.put(course1.getId(), course1);
+
         for (Course course :
-                Courses) {
+                Courses.values()) {
             ((Teacher) teacher).addCourse(course);
         }
-        Users.add(teacher);
-        Users.add(student);
-        Users.add(student2);
+        Users.put(teacher.getId(), teacher);
+        Users.put(student.getId(), student);
+        Users.put(student2.getId(), student2);
         Map<Character,String> choices= new HashMap<>();
         choices.put('a',"raspuns 1");
         choices.put('b',"raspuns 2");

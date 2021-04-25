@@ -1,5 +1,6 @@
-package services;
+package Validators;
 
+import Validators.ValidationInfo;
 import models.User;
 
 public class UserValidator {

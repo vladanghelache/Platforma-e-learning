@@ -1,5 +1,7 @@
 package models;
 
+import java.util.Optional;
+
 public abstract class Question {
     private static int count = 0;
     private int Id;
@@ -31,6 +33,14 @@ public abstract class Question {
 
     public int getPoints() {
         return points;
+    }
+
+    public void setId(int id) {
+        Id = id;
+    }
+
+    public static void setCount(Integer count) {
+        Question.count = count;
     }
 
     public void setPoints(int points) {
