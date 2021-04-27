@@ -1,4 +1,4 @@
 Id,firstName,lastNAme,password,email,age,coursesAttended,grades
-2,Prenume,Nume,parola123#,student@email.com,21,1 ,Muzica: Test1 -- Nota maxima posibila: 10/5~
+2,Prenume,Nume,parola123#,student@email.com,21,2 1 ,Muzica: Test1 -- Nota maxima posibila: 10/5~Teoria muzicii: Test final -- Nota maxima posibila: 11/8~
 3,Paul,Aaul,parola123#,email@email.com,18,1 ,Muzica: Test1 -- Nota maxima posibila: 10/10~
 6,Popescu,Ana,parola123#,std@email.com,23,,

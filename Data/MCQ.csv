@@ -1,3 +1,4 @@
 Id,question,points,nrChoices,choices,correctAnswer
 2,Intrebare 1,5,2,a/nu~b/da~,b
 3,Intrebare 2,5,2,a/adevarat~b/fals~,a
+4,Alegeti varianta corecta,3,3,a/varianta gresita~b/varianta corecta~c/varianta gresita~,null
