@@ -1,23 +1,27 @@
 
 import models.*;
-import services.*;
 
-import java.io.IOException;
+import repositories.*;
+import services.*;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+
 import java.time.LocalDateTime;
-import java.util.Date;
+
+import java.util.InputMismatchException;
+import java.util.Optional;
 import java.util.Scanner;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) throws ParseException {
         E_learningPlatform sesiune = E_learningPlatform.getInstance();
-        Audit audit = Audit.getInstance();
+        repositories.Audit audit = new repositories.Audit();
         Scanner scanner = new Scanner(System.in);
-        try {
-            exit:
-            while (true) {
-                while (sesiune.getCurrentUser() == null) {
+        exit:
+        while (true) {
+            while (sesiune.getCurrentUser() == null) {
+                try {
                     System.out.println("Pentru a va crea un cont nou apasati tasta '1' ");
                     System.out.println("Pentru a va loga apasati tasta '2' ");
                     System.out.println("Pentru a inchide sesiunea apasati tasta '3'");
@@ -26,22 +30,26 @@ public class Main {
                     switch (option) {
                         case "1":
                             sesiune.register();
-                            audit.writeAudit("register", LocalDateTime.now());
+                            audit.insert("register", LocalDateTime.now());
                             break;
                         case "2":
                             sesiune.login();
-                            audit.writeAudit("login", LocalDateTime.now());
+                            audit.insert("login", LocalDateTime.now());
                             break;
                         case "3":
-                            audit.writeAudit("exit", LocalDateTime.now());
+                            audit.insert("exit", LocalDateTime.now());
                             break exit;
                         default:
                             System.out.println("Comanda necunoscuta");
                     }
-
                 }
-                while (sesiune.getCurrentUser() != null) {
+                catch (InputMismatchException e){
+                    System.out.println("Operatie esuata! Incercati din nou");
+                }
 
+            }
+            while (sesiune.getCurrentUser() != null) {
+                try {
                     System.out.println("Pentru a afisa informatiile dumneavoastra apasati tasta '1' ");
                     System.out.println("Pentru a va deloga apasati tasta '2' ");
                     System.out.println("Pentru a inchide sesiunea apasati tasta '3'");
@@ -62,19 +70,19 @@ public class Main {
                                 break;
                             case "2":
                                 sesiune.logout();
-                                audit.writeAudit("logout", LocalDateTime.now());
+                                audit.insert("logout", LocalDateTime.now());
                                 break;
                             case "3":
-                                audit.writeAudit("exit", LocalDateTime.now());
+                                audit.insert("exit", LocalDateTime.now());
                                 break exit;
                             case "4":
-                                audit.writeAudit("showCoursesByCategory", LocalDateTime.now());
+                                audit.insert("showCoursesByCategory", LocalDateTime.now());
                                 sesiune.showCoursesByCategory();
                                 break;
                             case "5":
 
                                 sesiune.createCourse();
-                                audit.writeAudit("createCourse", LocalDateTime.now());
+                                audit.insert("createCourse", LocalDateTime.now());
                                 break;
                             case "6":
                                 System.out.println("\nAlegeti cursul la care doriti sa adaugati un quiz nou: \n");
@@ -83,124 +91,126 @@ public class Main {
                                 int id = scanner.nextInt();
                                 Course c = null;
                                 for (Course course :
-                                        ((Teacher) sesiune.getCurrentUser()).getCourses()) {
+                                        new Teachers().getCourses(sesiune.getCurrentUser().getId())) {
                                     if (course.getId() == id) {
                                         c = course;
                                         break;
                                     }
                                 }
                                 sesiune.addQuiz(c);
-                                audit.writeAudit("addQuiz", LocalDateTime.now());
+                                audit.insert("addQuiz", LocalDateTime.now());
                                 break;
                             case "7":
                                 System.out.println("\nAlegeti cursul in cadrul caruia se gaseste quiz-ul: \n");
                                 sesiune.showCourses(sesiune.getCurrentUser());
                                 System.out.print("\nIntroduceti id-ul cursului: ");
                                 int idCourse = scanner.nextInt();
-                                Course course1 = null;
-                                for (Course course :
-                                        ((Teacher) sesiune.getCurrentUser()).getCourses()) {
-                                    if (course.getId() == idCourse) {
-                                        course1 = course;
-                                        break;
-                                    }
-                                }
-                                System.out.println("\nAlegeti quizul la care doriti sa adaugati o intrebare noua: \n");
-                                for (Quiz quiz :
-                                        course1.getQuizzes()) {
-                                    System.out.println("Id: " + quiz.getId() + " ---- Quiz: " + quiz.getQuizName());
 
-                                }
-                                System.out.print("\nIntroduceti id-ul quiz-ului: ");
-                                int idQuiz = scanner.nextInt();
-                                for (Quiz quiz :
-                                        course1.getQuizzes()) {
-                                    if (quiz.getId() == idQuiz) {
-                                        sesiune.addQuestion(quiz);
-                                        break;
+                                Optional<Course> c1 = new Courses().getById(idCourse);
+                                Course course1 = null;
+                                if (c1.isPresent() && c1.get().getTeacher().getId() == sesiune.getCurrentUser().getId()) {
+                                    course1 = c1.get();
+
+                                    System.out.println("\nAlegeti quizul la care doriti sa adaugati o intrebare noua: \n");
+
+                                    for (Quiz quiz :
+                                            new Courses().getQuizzes(course1.getId())) {
+                                        System.out.println("Id: " + quiz.getId() + " ---- Quiz: " + quiz.getQuizName());
+
                                     }
+                                    System.out.print("\nIntroduceti id-ul quiz-ului: ");
+                                    int idQuiz = scanner.nextInt();
+                                    Optional<Quiz> q = new Quizzes().getById(idQuiz);
+                                    if (q.isPresent() && q.get().getCourse().getId() == course1.getId()) {
+                                        sesiune.addQuestion(q.get());
+                                    } else {
+                                        System.out.println("Quiz-ul nu a fost gasit!");
+                                    }
+                                } else {
+                                    System.out.println("Cursul nu a fost gasit!");
                                 }
-                                audit.writeAudit("addQuestion", LocalDateTime.now());
+
+
+                                audit.insert("addQuestion", LocalDateTime.now());
                                 break;
                             case "8":
                                 System.out.println("\nAlegeti cursul in cadrul caruia se gaseste quiz-ul: \n");
                                 sesiune.showCourses(sesiune.getCurrentUser());
                                 System.out.print("\nIntroduceti id-ul cursului: ");
                                 int ID = scanner.nextInt();
+                                Optional<Course> c2 = new Courses().getById(ID);
                                 Course course2 = null;
-                                for (Course course :
-                                        ((Teacher) sesiune.getCurrentUser()).getCourses()) {
-                                    if (course.getId() == ID) {
-                                        course2 = course;
-                                        break;
-                                    }
-                                }
-                                System.out.println("\nAlegeti quizul: \n");
-                                for (Quiz quiz :
-                                        course2.getQuizzes()) {
-                                    System.out.println("Id: " + quiz.getId() + " ---- Quiz: " + quiz.getQuizName());
+                                if (c2.isPresent() && c2.get().getTeacher().getId() == sesiune.getCurrentUser().getId()) {
+                                    course2 = c2.get();
 
-                                }
-                                System.out.print("\nIntroduceti id-ul quiz-ului: ");
-                                int IDQuiz = scanner.nextInt();
-                                for (Quiz quiz :
-                                        course2.getQuizzes()) {
-                                    if (quiz.getId() == IDQuiz) {
-                                        sesiune.removeQuestions(quiz);
-                                        break;
+                                    System.out.println("\nAlegeti quizul pentru care doriti sa stergeti intrebari: \n");
+
+                                    for (Quiz quiz :
+                                            new Courses().getQuizzes(course2.getId())) {
+                                        System.out.println("Id: " + quiz.getId() + " ---- Quiz: " + quiz.getQuizName());
+
                                     }
+                                    System.out.print("\nIntroduceti id-ul quiz-ului: ");
+                                    int idQuiz = scanner.nextInt();
+                                    Optional<Quiz> q = new Quizzes().getById(idQuiz);
+                                    if (q.isPresent() && q.get().getCourse().getId() == course2.getId()) {
+                                        sesiune.removeQuestions(q.get());
+                                    } else {
+                                        System.out.println("Quiz-ul nu a fost gasit!");
+                                    }
+                                } else {
+                                    System.out.println("Cursul nu a fost gasit!");
                                 }
-                                audit.writeAudit("removeQuestion", LocalDateTime.now());
+                                audit.insert("removeQuestion", LocalDateTime.now());
                                 break;
                             case "9":
                                 System.out.println("\nAlegeti cursul in cadrul caruia se gaseste quiz-ul: \n");
                                 sesiune.showCourses(sesiune.getCurrentUser());
                                 System.out.print("\nIntroduceti id-ul cursului: ");
                                 int ID2 = scanner.nextInt();
+                                Optional<Course> c3 = new Courses().getById(ID2);
                                 Course course3 = null;
-                                for (Course course :
-                                        ((Teacher) sesiune.getCurrentUser()).getCourses()) {
-                                    if (course.getId() == ID2) {
-                                        course3 = course;
-                                        break;
+                                if (c3.isPresent() && c3.get().getTeacher().getId() == sesiune.getCurrentUser().getId()) {
+                                    course3 = c3.get();
+
+                                    System.out.println("\nAlegeti quizul: \n");
+
+                                    for (Quiz quiz :
+                                            new Courses().getQuizzes(course3.getId())) {
+                                        System.out.println("Id: " + quiz.getId() + " ---- Quiz: " + quiz.getQuizName());
+
                                     }
-                                }
-                                System.out.println("\nAlegeti quizul: \n");
-                                for (Quiz quiz :
-                                        course3.getQuizzes()) {
-                                    System.out.println("Id: " + quiz.getId() + " ---- Quiz: " + quiz.getQuizName());
-
-                                }
-                                System.out.print("\nIntroduceti id-ul quiz-ului: ");
-                                int IDQuiz2 = scanner.nextInt();
-
-                                for (Quiz quiz :
-                                        course3.getQuizzes()) {
-                                    if (quiz.getId() == IDQuiz2) {
+                                    System.out.print("\nIntroduceti id-ul quiz-ului: ");
+                                    int idQuiz = scanner.nextInt();
+                                    Optional<Quiz> q = new Quizzes().getById(idQuiz);
+                                    if (q.isPresent() && q.get().getCourse().getId() == course3.getId()) {
                                         System.out.println("Raspunsuri date: ");
+                                        Set<Answer> ans = new Quizzes().getAnswers(idQuiz).stream().filter(a -> a.getGrade() == -1).collect(Collectors.toSet());
                                         for (Answer answer :
-                                                quiz.getAnswers()) {
+                                                ans) {
                                             System.out.println(answer);
                                         }
 
                                         System.out.print("Introduceti id-ul raspunsului pe care doriti sa il notati: ");
                                         int answerId = scanner.nextInt();
                                         for (Answer answer :
-                                                quiz.getAnswers()) {
+                                                ans) {
                                             if (answer.getId() == answerId) {
-                                                if (quiz instanceof NormalQuiz) {
-                                                    sesiune.scoreAnswer((NormalQuiz) quiz, answer, course3.getCourseName());
-                                                } else {
-                                                    System.out.println("Raspunsul a fost deja notat!");
+                                                if (q.get() instanceof NormalQuiz) {
+                                                    sesiune.scoreAnswer((NormalQuiz) q.get(), answer, course3.getCourseName());
                                                 }
                                                 break;
                                             }
                                         }
 
-                                        break;
+                                    } else {
+                                        System.out.println("Quiz-ul nu a fost gasit!");
                                     }
+                                } else {
+                                    System.out.println("Cursul nu a fost gasit!");
                                 }
-                                audit.writeAudit("scoreAnswer", LocalDateTime.now());
+
+                                audit.insert("scoreAnswer", LocalDateTime.now());
 
                                 break;
                             default:
@@ -213,80 +223,84 @@ public class Main {
 
                         String option = scanner.next();
                         switch (option) {
-                            case "1":
-                                System.out.println(sesiune.getCurrentUser());
-                                break;
-                            case "2":
+                            case "1" -> System.out.println(sesiune.getCurrentUser());
+                            case "2" -> {
                                 sesiune.logout();
-                                audit.writeAudit("logout", LocalDateTime.now());
-                                break;
-                            case "3":
-                                audit.writeAudit("exit", LocalDateTime.now());
+                                audit.insert("logout", LocalDateTime.now());
+                            }
+                            case "3" -> {
+                                audit.insert("exit", LocalDateTime.now());
                                 break exit;
-                            case "4":
+                            }
+                            case "4" -> {
                                 sesiune.showCoursesByCategory();
-                                audit.writeAudit("showCoursesByCategory", LocalDateTime.now());
-                                break;
-                            case "5":
+                                audit.insert("showCoursesByCategory", LocalDateTime.now());
+                            }
+                            case "5" -> {
                                 System.out.println("\nCautati cursul la care doriti sa va inscrieti:");
                                 sesiune.showCoursesByCategory();
                                 System.out.print("\nIntroduceti id-ul cursului: ");
                                 System.out.println(sesiune.joinCourse(scanner.nextInt()));
-                                audit.writeAudit("joinCourse", LocalDateTime.now());
-                                break;
-                            case "6":
+                                audit.insert("joinCourse", LocalDateTime.now());
+                            }
+                            case "6" -> {
                                 System.out.println("\nAlegeti cursul in cadrul caruia se gaseste quiz-ul: \n");
-                                if (!((Student) sesiune.getCurrentUser()).getCourses().isEmpty()) {
+                                if (!(new Students().getCourses( sesiune.getCurrentUser().getId())).isEmpty()) {
                                     sesiune.showCourses(sesiune.getCurrentUser());
                                     System.out.print("\nIntroduceti id-ul cursului: ");
                                     int ID = scanner.nextInt();
                                     Course course2 = null;
                                     for (Course course :
-                                            ((Student) sesiune.getCurrentUser()).getCourses()) {
+                                            (new Students().getCourses(sesiune.getCurrentUser().getId()))) {
                                         if (course.getId() == ID) {
                                             course2 = course;
                                             break;
                                         }
                                     }
-                                    if (!course2.getQuizzes().isEmpty()) {
-                                        System.out.println("\nAlegeti quizul: \n");
-                                        for (Quiz quiz :
-                                                course2.getQuizzes()) {
-                                            System.out.println("Id: " + quiz.getId() + " ---- Quiz: " + quiz.getQuizName());
+                                    if (course2 != null) {
+                                        Set<Quiz> quizzes = new Courses().getQuizzes(course2.getId());
+                                        if (!quizzes.isEmpty()) {
+                                            System.out.println("\nAlegeti quizul: \n");
+                                            for (Quiz quiz :
+                                                    quizzes) {
+                                                System.out.println("Id: " + quiz.getId() + " ---- Quiz: " + quiz.getQuizName());
 
-                                        }
-                                        System.out.print("\nIntroduceti id-ul quiz-ului: ");
-                                        int IDQuiz = scanner.nextInt();
-                                        for (Quiz quiz :
-                                                course2.getQuizzes()) {
-                                            if (quiz.getId() == IDQuiz) {
-                                                sesiune.takeQuiz(quiz, course2.getCourseName());
-                                                break;
                                             }
+                                            System.out.print("\nIntroduceti id-ul quiz-ului: ");
+                                            int IDQuiz = scanner.nextInt();
+                                            for (Quiz quiz :
+                                                    quizzes) {
+                                                if (quiz.getId() == IDQuiz) {
+                                                    sesiune.takeQuiz(quiz, course2.getCourseName());
+                                                    break;
+                                                }
+                                            }
+                                        } else {
+                                            System.out.println("Cursul selectat nu are niciun quiz");
                                         }
                                     } else {
-                                        System.out.println("Cursul selectat nu are niciun quiz");
+                                        System.out.println("Cursul n");
                                     }
                                 } else {
                                     System.out.println("Nu sunteti inscris la niciun curs!");
                                 }
-                                audit.writeAudit("takeQuiz", LocalDateTime.now());
-                                break;
-                            case "7":
+                                audit.insert("takeQuiz", LocalDateTime.now());
+                            }
+                            case "7" -> {
                                 sesiune.showGrades();
-                                audit.writeAudit("showGrades", LocalDateTime.now());
-                                break;
-                            default:
-                                System.out.println("Comanda necunoscuta");
+                                audit.insert("showGrades", LocalDateTime.now());
+                            }
+                            default -> System.out.println("Comanda necunoscuta");
                         }
                     }
-
                 }
+                catch (InputMismatchException e){
+                    System.out.println("Operatie esuata! Incercati din nou");
+                }
+
             }
-        }catch(IOException e){
-            System.out.println(e);
         }
 
-        sesiune.saveData();
+
     }
 }

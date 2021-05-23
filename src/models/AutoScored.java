@@ -14,8 +14,8 @@ public class AutoScored extends Quiz {
         super();
     }
 
-    public AutoScored(String quizName, int nrQuestions,Teacher teacher, @NotNull List<MCQ> MCQs){
-        super(quizName, nrQuestions, teacher);
+    public AutoScored(String quizName, int nrQuestions,Teacher teacher, Course course, @NotNull List<MCQ> MCQs){
+        super(quizName, nrQuestions, teacher, course);
         this.MCQs = new ArrayList<MCQ>(MCQs);
         this.setNrQuestions(MCQs.size());
         int totalPoints = 0;
@@ -28,9 +28,17 @@ public class AutoScored extends Quiz {
 
     }
 
+    public AutoScored(int id, String quizName, int nrQuestions, int totalPoints, Teacher teacher, Course course) {
+        super(id,quizName, nrQuestions, teacher, course, totalPoints);
+
+
+    }
+
     {
         this.MCQs = new ArrayList<>();
     }
+
+
 
     public List<MCQ> getMCQs() {
         return MCQs;

@@ -13,8 +13,8 @@ public class NormalQuiz extends Quiz {
         super();
     }
 
-    public NormalQuiz(String quizName, int nrQuestions, Teacher teacher, @NotNull List<Question> questions){
-        super(quizName, nrQuestions, teacher);
+    public NormalQuiz(String quizName, int nrQuestions, Teacher teacher,Course course, @NotNull List<Question> questions){
+        super(quizName, nrQuestions, teacher,course);
         this.questions = new ArrayList<Question>(questions);
         this.setNrQuestions(questions.size());
         int totalPoints = 0;
@@ -27,9 +27,17 @@ public class NormalQuiz extends Quiz {
 
     }
 
+    public NormalQuiz(int id, String quizName, int nrQuestions, int totalPoints, Teacher teacher, Course course) {
+        super(id,quizName, nrQuestions, teacher,course, totalPoints);
+
+
+    }
+
     {
         this.questions = new ArrayList<>();
     }
+
+
 
     public List<Question> getQuestions() {
         return questions;

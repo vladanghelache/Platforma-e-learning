@@ -19,6 +19,13 @@ public class Teacher extends User {
 
     }
 
+    public Teacher ( int Id, String firstName, String lastName, String password, String email, String qualification){
+        super(Id,firstName,lastName,password,email);
+
+        this.qualification = qualification;
+
+    }
+
     {
         this.Courses = new HashSet<Course>();
     }

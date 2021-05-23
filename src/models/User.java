@@ -3,12 +3,23 @@ package models;
 import java.util.Optional;
 
 public abstract class User {
-    private static int count = 0;
+
     private int Id;
     private String firstName;
     private String lastName;
     private String password;
     private String email;
+
+    public User (int Id, String firstName, String lastName, String password, String email) {
+
+        this.Id = Id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.password = password;
+        this.email = email;
+
+
+    }
 
     public User (String firstName, String lastName, String password, String email) {
 
@@ -25,10 +36,6 @@ public abstract class User {
 
     }
 
-    {
-        count ++;
-        this.Id = count;
-    }
 
     public int getId() {
         return Id;
@@ -56,10 +63,6 @@ public abstract class User {
 
     public void setId(int id) {
         Id = id;
-    }
-
-    public static void setCount(Integer count) {
-        User.count = count;
     }
 
     public void setFirstName(String firstName) {

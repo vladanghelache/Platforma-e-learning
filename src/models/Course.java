@@ -4,7 +4,7 @@ package models;
 import java.util.*;
 
 public class Course {
-    private static int count = 0;
+
     private int Id;
     private String courseName;
     private Teacher teacher;
@@ -26,9 +26,16 @@ public class Course {
         this.startDate = startDate;
     }
 
+    public Course(int Id, String courseName, Teacher teacher, Category category, Date startDate, Date endDate){
+        this.courseName = courseName;
+        this.teacher = teacher;
+        this.category = category;
+        this.endDate = endDate;
+        this.startDate = startDate;
+        this.Id = Id;
+    }
+
     {
-        count ++;
-        Id = count;
         this.quizzes =  new HashSet<Quiz>();
         this.students = new TreeSet<Student>();
     }
@@ -67,10 +74,6 @@ public class Course {
 
     public void setId(int id) {
         Id = id;
-    }
-
-    public static void setCount(Integer count) {
-        Course.count = count;
     }
 
     public void setCategory(Category category) {

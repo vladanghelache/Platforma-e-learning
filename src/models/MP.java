@@ -12,8 +12,15 @@ public class MP extends Question {
         super(); super.setQuestion("Asociati elementele din coloana A cu cele din coloana B:");
     }
 
-    public MP(int points, Map<Character, String> columnA, Map<Integer, String> columnB){
-        super("Asociati elementele din coloana A cu cele din coloana B:",points);
+    public MP(int points,Quiz quiz, Map<Character, String> columnA, Map<Integer, String> columnB){
+        super("Asociati elementele din coloana A cu cele din coloana B:",points, quiz);
+        this.columnA = columnA;
+        this.columnB = columnB;
+
+    }
+
+    public MP(int id, String question, int points, Quiz quiz, Map<Character, String> columnA, Map<Integer, String> columnB) {
+        super(id,question,points, quiz);
         this.columnA = columnA;
         this.columnB = columnB;
 

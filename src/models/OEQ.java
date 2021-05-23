@@ -7,8 +7,14 @@ public class OEQ extends Question {
     public OEQ() {
         super();
     }
-    public OEQ(String question, int points, String tips){
-        super(question, points);
+    public OEQ(String question, int points,Quiz quiz, String tips){
+        super(question, points, quiz);
+        this.tips = tips;
+    }
+
+    public OEQ(int Id, String question, int points,Quiz quiz, String tips){
+        super(Id,question, points, quiz);
+        this.tips = tips;
     }
 
     public String getTips() {

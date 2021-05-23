@@ -7,27 +7,37 @@ import java.util.Optional;
 import java.util.Set;
 
 public abstract class Quiz {
-    private static int count = 0;
+
     private int Id;
     private String quizName;
     private int nrQuestions;
     private Set<Answer> answers;
     private int totalPoints;
     private Teacher teacher;
+    private Course course;
 
     public Quiz(){
 
     }
 
-    public Quiz(String quizName, int nrQuestions, Teacher teacher){
+    public Quiz(String quizName, int nrQuestions, Teacher teacher, Course course){
         this.quizName = quizName;
         this.nrQuestions = nrQuestions;
         this.teacher = teacher;
+        this.course = course;
     }
 
+    public Quiz(int Id, String quizName, int nrQuestions, Teacher teacher, Course course,int totalPoints){
+        this.quizName = quizName;
+        this.nrQuestions = nrQuestions;
+        this.teacher = teacher;
+        this.course = course;
+        this.Id = Id;
+        this.totalPoints = totalPoints;
+    }
+
+
     {
-        count ++;
-        this.Id = count;
         this.answers = new HashSet<Answer>();
 
     }
@@ -60,6 +70,14 @@ public abstract class Quiz {
         return quizName;
     }
 
+    public Course getCourse() {
+        return course;
+    }
+
+    public void setCourse(Course course) {
+        this.course = course;
+    }
+
     public void setId(int id) {
         Id = id;
     }
@@ -68,9 +86,7 @@ public abstract class Quiz {
         this.totalPoints = totalPoints;
     }
 
-    public static void setCount(Integer count) {
-        Quiz.count = count;
-    }
+
 
     public void setQuizName(String quizName) {
         this.quizName = quizName;

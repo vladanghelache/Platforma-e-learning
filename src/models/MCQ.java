@@ -14,9 +14,17 @@ public class MCQ extends Question {
         super();
     }
 
-    public MCQ(String question, int points, int nrChoices, Map<Character,String> choices, Character correctAnswer){
+    public MCQ(String question, int points,Quiz quiz, int nrChoices, Map<Character,String> choices, Character correctAnswer){
 
-        super(question,points);
+        super(question,points,quiz);
+        this.nrChoices = nrChoices;
+        this.choices = choices;
+        this.correctAnswer = correctAnswer;
+
+    }
+
+    public MCQ(int id, String question, int points, Quiz quiz, int nrChoices, Map<Character, String> choices, Character correctAnswer) {
+        super(id,question,points,quiz);
         this.nrChoices = nrChoices;
         this.choices = choices;
         this.correctAnswer = correctAnswer;

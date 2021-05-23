@@ -3,25 +3,30 @@ package models;
 import java.util.Optional;
 
 public abstract class Question {
-    private static int count = 0;
+
     private int Id;
     private String question;
     private int points;
+    private Quiz quiz;
 
     public Question(){
 
     }
-    public Question(String question, int points){
+    public Question(String question, int points, Quiz quiz){
         this.question = question;
         this.points = points;
+        this.quiz = quiz;
 
     }
 
-    {
-        count ++;
-        this.Id = count;
+    public Question(int Id,String question, int points, Quiz quiz){
+        this.question = question;
+        this.points = points;
+        this.quiz = quiz;
+        this.Id = Id;
 
     }
+
 
     public int getId() {
         return Id;
@@ -35,13 +40,19 @@ public abstract class Question {
         return points;
     }
 
+    public Quiz getQuiz() {
+        return quiz;
+    }
+
+    public void setQuiz(Quiz quiz) {
+        this.quiz = quiz;
+    }
+
     public void setId(int id) {
         Id = id;
     }
 
-    public static void setCount(Integer count) {
-        Question.count = count;
-    }
+
 
     public void setPoints(int points) {
         this.points = points;

@@ -5,43 +5,26 @@ import Validators.DateValidator;
 import Validators.UserValidator;
 import Validators.ValidationInfo;
 import models.*;
+import repositories.Database;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class E_learningPlatform {
 
     private static E_learningPlatform instance;
-    private static Map<Integer, Course> Courses;
-    private static Map<Integer, User> Users;
-    private static Map<Integer, Quiz> Quizzes;
-    private static Map<Integer, Answer> Answers;
-    private static Map<Integer, Question> Questions;
+    private Database db;
     private User currentUser;
 
-    static {
-        Courses = new HashMap<>();
-        Users = new HashMap<>();
-        Quizzes = new HashMap<>();
-        Answers = new HashMap<>();
-        Questions = new HashMap<>();
+    {
+        db = new Database();
     }
+
     private E_learningPlatform() throws ParseException {
         System.out.print("Bine ati venit!\n");
-        ReadData.getInstance().readData(Users, Courses, Quizzes, Questions, Answers);
-        Comparator<Integer> comparator = new Comparator<Integer>() {
-            @Override
-            public int compare(Integer o1, Integer o2) {
-                return o1 - o2;
-            }
-        };
 
-        Course.setCount(Courses.keySet().stream().max(comparator).get());
-        User.setCount(Users.keySet().stream().max(comparator).get());
-        Answer.setCount(Answers.keySet().stream().max(comparator).get());
-        Quiz.setCount(Quizzes.keySet().stream().max(comparator).get());
-        Question.setCount(Questions.keySet().stream().max(comparator).get());
     }
 
     public static E_learningPlatform getInstance() throws ParseException {
@@ -52,9 +35,6 @@ public class E_learningPlatform {
         return instance;
     }
 
-    public void saveData(){
-        WriteData.getInstance().writeData(Users, Courses, Quizzes, Questions, Answers);
-    }
 
     public void register(){
 
@@ -78,18 +58,14 @@ public class E_learningPlatform {
                         System.out.print("Introduceti adresa de email: ");
                         String email = scan.next();
                         unic = true;
-                        for (User user :
-                                Users.values()) {
-                            if (user.getEmail().equals(email)) {
-                                System.out.println("Adresa de email introdusa este deja asociata unui cont");
-                                unic = false;
-                                break;
-                            }
+
+                        if (db.teachers.getByEmail(email).isPresent() || db.students.getByEmail(email).isPresent()){
+                            System.out.println("Adresa de email introdusa este deja asociata unui cont");
+                            unic = false;
                         }
-                        if (unic) {
+                        else {
                             newUser.setEmail(email);
                         }
-
                     }
 
                 }
@@ -114,13 +90,15 @@ public class E_learningPlatform {
                     if (newUser instanceof Student) {
                         System.out.print("Introduceti varsta dumneavoastra: ");
                         ((Student) newUser).setAge(scan.nextInt());
+                        db.students.insert((Student) newUser);
                     } else {
                         scan.nextLine();
                         System.out.print("Introduceti calificarile dumneavostra: ");
                         ((Teacher) newUser).setQualification(scan.nextLine());
+                        db.teachers.insert((Teacher) newUser);
                     }
 
-                    Users.put(newUser.getId(),newUser);
+
                     this.currentUser = newUser;
                 } else {
                     valid = info.getValid();
@@ -136,29 +114,32 @@ public class E_learningPlatform {
     public void login(){
         if (currentUser == null){
             Scanner scanner = new Scanner(System.in);
-            boolean foundUser = false;
             User user = null;
             System.out.print("Introduceti email: ");
             String email = scanner.next();
-            for (User u :
-                    Users.values()) {
-            if(email.equals(u.getEmail())){
-                   user = u;
-                   foundUser = true;
-                   break;
-                }
+
+            Optional<Teacher> teacher = db.teachers.getByEmail(email);
+            Optional<Student> student = db.students.getByEmail(email);
+
+            if (teacher.isPresent()){
+                user = teacher.get();
             }
-            if (!foundUser){
-                System.out.println("Nu exista niciun cont asociat emailului introdus");
+            else if(student.isPresent()) {
+                user = student.get();
             }
             else{
-                System.out.print("Introduceti parola: ");
-                String password = scanner.next();
-
-                if(password.equals(user.getPassword())){
-                    currentUser = user;
-                }
+                System.out.println("Nu exista niciun cont asociat emailului introdus");
+                return;
             }
+
+
+            System.out.print("Introduceti parola: ");
+            String password = scanner.next();
+
+            if(password.equals(user.getPassword())){
+                currentUser = user;
+            }
+
 
         }
     }
@@ -230,8 +211,8 @@ public class E_learningPlatform {
                         }
                     }
                     newCourse.setTeacher((Teacher) currentUser);
-                    ((Teacher) currentUser).addCourse(newCourse);
-                    Courses.put(newCourse.getId(), newCourse);
+//                    ((Teacher) currentUser).addCourse(newCourse);
+                    db.courses.insert(newCourse);
                     break;
                 }
                 else{
@@ -255,13 +236,14 @@ public class E_learningPlatform {
                 }
                 int index = scanner.nextInt();
                 if (index < categories.size() && index >= 0) {
+                    Map<Integer, Course> Courses = db.courses.getByCategory(categories.get(index).toString());
                     for (Course course:
                          Courses.values()) {
-                        if (course.getCategory() == categories.get(index)){
-                            System.out.println(course);
-                            System.out.println("->Participanti:");
-                            showParticipants(course);
-                        }
+
+                        System.out.println(course);
+                        System.out.println("->Participanti:");
+                        showParticipants(course);
+
                     }
                     break;
                 }
@@ -272,18 +254,18 @@ public class E_learningPlatform {
     }
 
     public void showParticipants(Course course){
+        Set<Student> students = db.courses.getStudents(course.getId());
         for (Student student :
-                course.getStudents()) {
+                students) {
             System.out.println("  - "+ student);
         }
     }
 
     public String joinCourse(int courseId){
         if (currentUser instanceof Student) {
-           if (Courses.containsKey(courseId)) {
+           if (db.courses.getById(courseId).isPresent()) {
 
-               Courses.get(courseId).addStudent((Student) currentUser);
-               ((Student) currentUser).addCourse(Courses.get(courseId));
+               db.students.joinCourse(currentUser.getId(), courseId);
                return "Inscrierea s-a efectuat cu succes!";
            }
            else {
@@ -295,14 +277,14 @@ public class E_learningPlatform {
 
     public void showCourses(User user){
         if(user instanceof Teacher){
-            Set<Course> courses =  ((Teacher) user).getCourses();
+            Set<Course> courses =  db.teachers.getCourses(currentUser.getId());
             for (Course course :
                     courses) {
                 System.out.println(course);
             }
         }
         else{
-            Set<Course> courses =  ((Student) user).getCourses();
+            Set<Course> courses =  db.students.getCourses(currentUser.getId());;
             for (Course course :
                     courses) {
                 System.out.println(course);
@@ -311,7 +293,7 @@ public class E_learningPlatform {
     }
 
     public void addQuiz(Course course){
-        if (currentUser instanceof Teacher && currentUser == course.getTeacher()){
+        if (currentUser instanceof Teacher && currentUser.getId() == course.getTeacher().getId()){
             Scanner scanner = new Scanner(System.in);
             System.out.print("Pentru a crea un quiz 'AutoScored' apasati tasta 'A'\nPentru a crea un quiz normal apasati tasta 'N': ");
             String option = scanner.next();
@@ -328,6 +310,11 @@ public class E_learningPlatform {
             System.out.print("Intrduceti numarul de intrebari pentru noul quiz: ");
             int n = scanner.nextInt();
             newQuiz.setNrQuestions(n);
+
+            newQuiz.setCourse(course);
+            newQuiz.setTeacher((Teacher) currentUser);
+            db.quizzes.insert(newQuiz);
+
             if (newQuiz instanceof AutoScored) {
                 List<MCQ> questions = new ArrayList<>();
                 int totalPoints = 0;
@@ -336,12 +323,14 @@ public class E_learningPlatform {
 
                     System.out.println("Introduceti raspunsul corect: ");
                     question.setCorrectAnswer(scanner.next().charAt(0));
-                    questions.add(question);
-                    Questions.put(question.getId(),question);
+                    question.setQuiz(newQuiz);
+
+                    db.mcqs.insert(question);
                     totalPoints += question.getPoints();
                 }
-                ((AutoScored) newQuiz).setMCQs(questions);
+//                ((AutoScored) newQuiz).setMCQs(questions);
                  newQuiz.setTotalPoints(totalPoints);
+
             }
             else{
                 List<Question> questions = new ArrayList<>();
@@ -354,38 +343,55 @@ public class E_learningPlatform {
                         op = scanner.next();
                     }
                     Question question = makeQuestion(op);
-                    questions.add(question);
-                    Questions.put(question.getId(),question);
-                    totalPoints += questions.get(i).getPoints();
+                    if (question instanceof MCQ){
+                        System.out.println("Introduceti raspunsul corect: ");
+                        ((MCQ) question).setCorrectAnswer(scanner.next().charAt(0));
+                        db.mcqs.insert((MCQ) question);
+                    }
+                    else if(question instanceof OEQ){
+                        db.oeqs.insert((OEQ) question);
+                    }
+                    else{
+                        db.mps.insert((MP) question);
+                    }
+
+                    totalPoints += question.getPoints();
                 }
 
-                ((NormalQuiz) newQuiz).setQuestions(questions);
+//                ((NormalQuiz) newQuiz).setQuestions(questions);
                 newQuiz.setTotalPoints(totalPoints);
 
             }
-            newQuiz.setTeacher((Teacher) currentUser);
-            course.addQuiz(newQuiz);
-            Quizzes.put(newQuiz.getId(),newQuiz);
+
+//            course.addQuiz(newQuiz);
+            db.quizzes.update(newQuiz);
+
         }
     }
 
     public void addQuestion(Quiz quiz){
-        if (currentUser instanceof Teacher && currentUser == quiz.getTeacher()) {
+        if (currentUser instanceof Teacher && currentUser.getId() == quiz.getTeacher().getId()) {
             Scanner scanner = new Scanner(System.in);
             if (quiz instanceof AutoScored) {
                 int totalPoints = quiz.getTotalPoints();
+                int nrQuestions = quiz.getNrQuestions();
                 MCQ question = (MCQ) makeQuestion("1");
 
                 System.out.println("Introduceti raspunsul corect: ");
                 question.setCorrectAnswer(scanner.next().charAt(0));
                 totalPoints += question.getPoints();
-
-                ((AutoScored) quiz).addQuestion(question);
+                nrQuestions ++;
+                question.setQuiz(quiz);
+                quiz.setNrQuestions(nrQuestions);
+//                ((AutoScored) quiz).addQuestion(question);
                 quiz.setTotalPoints(totalPoints);
+                db.mcqs.insert(question);
+                db.quizzes.update(quiz);
+
             } else {
 
                 int totalPoints = quiz.getTotalPoints();
-
+                int nrQuestions = quiz.getNrQuestions();
                 System.out.print("Pentru a crea MCQ apasati tasta '1'\nPentru a crea OEQ apasati tasta '2'\n Pentru a crea MP apasati tasta '3':\n ");
                 String op = scanner.next();
                 while (!op.equals("1") && !op.equals("2") && !op.equals("3")) {
@@ -393,21 +399,38 @@ public class E_learningPlatform {
                     op = scanner.next();
                 }
                 Question question = makeQuestion(op);
+                question.setQuiz(quiz);
                 totalPoints += question.getPoints();
 
+                nrQuestions ++;
+                quiz.setNrQuestions(nrQuestions);
 
-                ((NormalQuiz) quiz).addQuestion(question);
+//                ((NormalQuiz) quiz).addQuestion(question);
+
                 quiz.setTotalPoints(totalPoints);
+
+                if (question instanceof MCQ){
+                    System.out.println("Introduceti raspunsul corect: ");
+                    ((MCQ) question).setCorrectAnswer(scanner.next().charAt(0));
+                    db.mcqs.insert((MCQ) question);
+                }
+                else if(question instanceof OEQ){
+                    db.oeqs.insert((OEQ) question);
+                }
+                else{
+                    db.mps.insert((MP) question);
+                }
+                db.quizzes.update(quiz);
 
             }
         }
     }
 
     public void removeQuestions(Quiz quiz){
-        if(currentUser instanceof Teacher && currentUser == quiz.getTeacher()){
+        if(currentUser instanceof Teacher && currentUser.getId() == quiz.getTeacher().getId()){
             Scanner scanner = new Scanner(System.in);
             if (quiz instanceof AutoScored) {
-                List<MCQ> questions = new ArrayList<>(((AutoScored) quiz).getMCQs());
+                List<MCQ> questions = db.quizzes.getMCQs(quiz.getId());
                 for (MCQ question :
                         questions) {
                     System.out.println(question);
@@ -419,14 +442,14 @@ public class E_learningPlatform {
                         option = scanner.next();
                     }
                     if (option.equalsIgnoreCase("d")){
-                        ((AutoScored) quiz).removeQuestion(question);
-                        Questions.remove(question.getId());
+                        //((AutoScored) quiz).removeQuestion(question);
+                        db.mcqs.delete(question.getId());
                     }
 
                 }
             }
             else{
-                List<Question> questions = new ArrayList<Question>(((NormalQuiz) quiz).getQuestions());
+                List<Question> questions = db.quizzes.getQuestions(quiz.getId());
                 for (Question question :
                         questions) {
                     System.out.println(question);
@@ -438,8 +461,16 @@ public class E_learningPlatform {
                         option = scanner.next();
                     }
                     if (option.equalsIgnoreCase("d")){
-                        ((NormalQuiz) quiz).removeQuestion(question);
-                        Questions.remove(question.getId());
+                        //((NormalQuiz) quiz).removeQuestion(question);
+                        if (question instanceof MCQ){
+                            db.mcqs.delete(question.getId());
+                        }
+                        else if(question instanceof OEQ){
+                            db.oeqs.delete(question.getId());
+                        }
+                        else{
+                            db.mps.delete(question.getId());
+                        }
                     }
 
                 }
@@ -451,7 +482,7 @@ public class E_learningPlatform {
         if (currentUser instanceof Student){
             Scanner scanner = new Scanner(System.in);
             if (quiz instanceof AutoScored){
-                List<MCQ> questions = ((AutoScored) quiz).getMCQs();
+                List<MCQ> questions = db.quizzes.getMCQs(quiz.getId());
                 List<String> answer = new ArrayList<>();
                 System.out.println("Acesta este un test grila. Fiecare intrebare are un singur raspuns corect.\nScrieti numai litera corespunzatoare raspunsului ales.");
 
@@ -463,14 +494,13 @@ public class E_learningPlatform {
 
                 }
 
-                Answer a = new Answer((Student) currentUser, answer);
-                quiz.addAnswer(a);
-                Answers.put(a.getId(),a);
+                Answer a = new Answer((Student) currentUser, answer, quiz);
+                db.answers.insert(a);
                 scoreAnswer((AutoScored) quiz,a,courseName);
 
             }
             else{
-                List<Question> questions = ((NormalQuiz) quiz).getQuestions();
+                List<Question> questions = db.quizzes.getQuestions(quiz.getId());
                 List<String> answer = new ArrayList<>();
                 System.out.println("Testul contine diferite tiputi de intrebari.");
 
@@ -482,33 +512,32 @@ public class E_learningPlatform {
 
 
                 }
-                Answer a = new Answer((Student) currentUser, answer);
-                quiz.addAnswer(a);
-                Answers.put(a.getId(),a);
+                Answer a = new Answer((Student) currentUser, answer,quiz);
+                db.answers.insert(a);
             }
         }
     }
 
     public void scoreAnswer(AutoScored quiz, Answer answer, String courseName){
-        List<MCQ> questions = quiz.getMCQs();
+        List<MCQ> questions = db.quizzes.getMCQs(quiz.getId());
         List<String> answers = answer.getAnswer();
-        int grade = 0;
+        double grade = 0;
         for (int i = 0; i < questions.size(); i++) {
             String corect = new String(String.valueOf(questions.get(i).getCorrectAnswer()));
             if(answers.get(i).equals(corect)){
                 grade += questions.get(i).getPoints();
             }
         }
-        answer.getStudent().addGrade(courseName+": "+quiz.getQuizName() + " -- Nota maxima posibila: "+quiz.getTotalPoints(),grade);
-
+        answer.setGrade(grade);
+        db.answers.updateGrade(answer.getId(), grade);
     }
 
     public void scoreAnswer(NormalQuiz quiz, Answer answer, String courseName){
-        if (currentUser instanceof Teacher && quiz.getTeacher()==currentUser) {
+        if (currentUser instanceof Teacher && quiz.getTeacher().getId()==currentUser.getId()) {
             Scanner scanner = new Scanner(System.in);
-            List<Question> questions = quiz.getQuestions();
+            List<Question> questions = db.quizzes.getQuestions(quiz.getId());
             List<String> answers = answer.getAnswer();
-            int grade = 0;
+            double grade = 0;
             for (int i = 0; i < questions.size(); i++) {
                 System.out.println((i+1)+". "+questions.get(i)+" \nRaspuns:\n"+ answers.get(i));
                 System.out.print("Introduceti punctajul acordat: ");
@@ -520,16 +549,18 @@ public class E_learningPlatform {
                 grade += p;
 
             }
-            answer.getStudent().addGrade(courseName + ": " + quiz.getQuizName() + " -- Nota maxima posibila: "+quiz.getTotalPoints(), grade);
+            answer.setGrade(grade);
+            db.answers.updateGrade(answer.getId(), grade);
         }
     }
 
     public void showGrades(){
         if (currentUser instanceof Student){
-            Map<String,Integer> map = ((Student) currentUser).getGrades();
-            for (Map.Entry<String, Integer> entry :
-                    map.entrySet()) {
-                System.out.println(entry.getKey()+" -- Nota obtinuta: " + entry.getValue());
+            Set<Answer> answers = db.students.getAnswers(currentUser.getId()).stream().filter(a -> a.getGrade() != -1 ).collect(Collectors.toSet());
+            for (Answer answer :
+                    answers) {
+
+                System.out.println(answer.getQuiz().getCourse().getCourseName()+": "+answer.getQuiz().getQuizName() +" -- Nota obtinuta: " + answer.getGrade() + " / "+ answer.getQuiz().getTotalPoints());
             }            
 
         }
@@ -640,32 +671,32 @@ public class E_learningPlatform {
         }
     }
 
-    private void addExamples() throws ParseException {
-        User teacher = new Teacher("Igor", "Stravinski","parola123#","profesor@email.com","Doctorat in muzica");
-        User student = new Student("Alex", "Alexandrescu","parola123#","student@email.com",20);
-        User student2 = new Student("Paul", "Paulescu","parola123#","paul@email.com",22);
-        Course course1 = new Course("The Rite of Spring", (Teacher) teacher,Category.Music, new SimpleDateFormat("yyyy-MM-dd").parse("2021-04-04"),new SimpleDateFormat("yyyy-MM-dd").parse("2021-07-04"));
-        Courses.put(course1.getId(), course1);
-
-        for (Course course :
-                Courses.values()) {
-            ((Teacher) teacher).addCourse(course);
-        }
-        Users.put(teacher.getId(), teacher);
-        Users.put(student.getId(), student);
-        Users.put(student2.getId(), student2);
-        Map<Character,String> choices= new HashMap<>();
-        choices.put('a',"raspuns 1");
-        choices.put('b',"raspuns 2");
-        MCQ q1 = new MCQ("Intrebare 1", 4, 2,choices,'a');
-        MCQ q2 = new MCQ("Intrebare 2", 4, 2,choices,'b');
-        List<MCQ> l = new ArrayList<>();
-        l.add(q1);
-        l.add(q2);
-        AutoScored quiz = new AutoScored("test",2, (Teacher) teacher,l);
-        course1.addQuiz(quiz);
-
-    }
+//    private void addExamples() throws ParseException {
+//        User teacher = new Teacher("Igor", "Stravinski","parola123#","profesor@email.com","Doctorat in muzica");
+//        User student = new Student("Alex", "Alexandrescu","parola123#","student@email.com",20);
+//        User student2 = new Student("Paul", "Paulescu","parola123#","paul@email.com",22);
+//        Course course1 = new Course("The Rite of Spring", (Teacher) teacher,Category.Music, new SimpleDateFormat("yyyy-MM-dd").parse("2021-04-04"),new SimpleDateFormat("yyyy-MM-dd").parse("2021-07-04"));
+//        Courses.put(course1.getId(), course1);
+//
+//        for (Course course :
+//                Courses.values()) {
+//            ((Teacher) teacher).addCourse(course);
+//        }
+//        Users.put(teacher.getId(), teacher);
+//        Users.put(student.getId(), student);
+//        Users.put(student2.getId(), student2);
+//        Map<Character,String> choices= new HashMap<>();
+//        choices.put('a',"raspuns 1");
+//        choices.put('b',"raspuns 2");
+////        MCQ q1 = new MCQ("Intrebare 1", 4, 2,choices,'a');
+////        MCQ q2 = new MCQ("Intrebare 2", 4, 2,choices,'b');
+////        List<MCQ> l = new ArrayList<>();
+////        l.add(q1);
+////        l.add(q2);
+////        AutoScored quiz = new AutoScored("test",2, (Teacher) teacher,l);
+////        course1.addQuiz(quiz);
+//
+//    }
 
 }
 

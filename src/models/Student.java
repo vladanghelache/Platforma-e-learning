@@ -21,6 +21,14 @@ public class Student extends User implements Comparable<Student> {
 
     }
 
+    public Student( int Id, String firstName, String lastName, String password, String email, int age){
+
+        super(Id,firstName,lastName,password,email);
+
+        this.age = age;
+
+    }
+
     {
         this.coursesAttended = new HashSet<Course>();
         this.grades = new HashMap<String,Integer>();
