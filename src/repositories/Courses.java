@@ -103,9 +103,9 @@ public class Courses {
         return courses;
     }
 
-    public Set<Student> getStudents(int id){
+    public SortedSet<Student> getStudents(int id){
 
-        Set<Student> students = new HashSet<>();
+        SortedSet<Student> students = new TreeSet<>();
         Connection connection = DBConfiguration.getDbConnection();
         try {
             PreparedStatement preparedStatement = connection.prepareStatement("select s.Id,s.firstName,s.lastName,s.password,s.email, s.age " +
