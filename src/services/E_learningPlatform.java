@@ -346,12 +346,15 @@ public class E_learningPlatform {
                     if (question instanceof MCQ){
                         System.out.println("Introduceti raspunsul corect: ");
                         ((MCQ) question).setCorrectAnswer(scanner.next().charAt(0));
+                        question.setQuiz(newQuiz);
                         db.mcqs.insert((MCQ) question);
                     }
                     else if(question instanceof OEQ){
+                        question.setQuiz(newQuiz);
                         db.oeqs.insert((OEQ) question);
                     }
                     else{
+                        question.setQuiz(newQuiz);
                         db.mps.insert((MP) question);
                     }
 
